@@ -4,10 +4,12 @@ version = "0.1.0"
 description = "Systemd service orchestrator written using the pydase framework."
 authors = ["Mose Mueller <mosmuell@ethz.ch>"]
 readme = "README.md"
+packages = [{ include = "orchestrator", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 pydase = { git = "https://github.com/tiqi-group/pydase.git", branch = "main" }
+paramiko = "^3.4.0"
 
 
 [build-system]
@@ -21,6 +23,7 @@ optional = true
 ruff = "^0.2.0"
 pyright = "^1.1.353"
 mypy = "^1.9.0"
+types-paramiko = "^3.4.0.20240311"
 
 [tool.pyright]
 include = ["src/orchestrator", "tests"]
