@@ -1,6 +1,7 @@
 import logging
 import re
 from pathlib import Path
+from typing import TypedDict
 
 import paramiko
 import pydase.components
@@ -15,6 +16,16 @@ from orchestrator.systemd_service_proxy import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class SystemdRecord(TypedDict):
+    unit: str
+    load_state: str
+    active_state: str
+    sub_state: str
+    description: str
+    tags: list[str]
+    hostname: str
 
 
 class ServiceHost(pydase.components.DeviceConnection):
@@ -77,48 +88,30 @@ class ServiceHost(pydase.components.DeviceConnection):
         self.service_proxy_list = self.get_service_proxy_list()
 
     def get_service_proxy_list(self) -> list[SystemdServiceProxy]:
-        cmd = (
-            r'systemctl list-units --user --all --full --no-pager | grep "Tags \[.*\]"'
-        )
         service_proxy_list: list[SystemdServiceProxy] = []
 
-        try:
-            logger.info("Getting service proxy list")
-            _, stdout, _ = self._ssh_client.exec_command(cmd)
-            lines = stdout.readlines()
+        systemd_record_list = self._get_systemd_service_records()
 
-            pattern = r"[^\w]+([\w-]+\.service)\s+(\w+)\s+(\w+)\s+(\w+)\s+(.+?)\s+Tags \[(.+?)\]"
-            logger.info(lines)
+        for systemd_record in systemd_record_list:
 
-            for line in lines:
-                match = re.match(pattern, line)
-                if match is not None:
-                    (
-                        unit,
-                        _,
-                        active_state,
-                        _,
-                        description,
-                        tags,
-                    ) = match.groups()
-                    if unit.endswith(".service"):
-                        unit = unit[:-8]
-                    service_proxy = SystemdServiceProxy(
-                        unit=unit,
-                        state=ServiceState(active_state),
-                        description=description,
-                        tags=[Tag(tag) for tag in tags.split(", ")],
-                        systemd_unit_manager=lambda action: self.manage_systemd_unit(
-                            action, unit
-                        ),
-                    )
-                    service_proxy_list.append(service_proxy)
-        except Exception as e:
-            logger.error("An error occurred on host %a: %s", self._hostname, e)
+            def change_unit_state(
+                action: ManagerAction, *, systemd_unit: str = systemd_record["unit"]
+            ) -> None:
+                self._manage_systemd_unit(action, systemd_unit)
+                self.service_proxy_list = self.get_service_proxy_list()
+
+            service_proxy = SystemdServiceProxy(
+                unit=systemd_record["unit"],
+                state=ServiceState(systemd_record["active_state"]),
+                description=systemd_record["description"],
+                tags=[Tag(tag) for tag in systemd_record["tags"]],
+                systemd_unit_manager=change_unit_state,
+            )
+            service_proxy_list.append(service_proxy)
 
         return service_proxy_list
 
-    def manage_systemd_unit(self, action: ManagerAction, unit: str) -> str | None:
+    def _manage_systemd_unit(self, action: ManagerAction, unit: str) -> str | None:
         """
         Manages a given systemd unit.
 
@@ -137,4 +130,50 @@ class ServiceHost(pydase.components.DeviceConnection):
             return stdout.read().decode("utf-8")
         except Exception as e:
             logger.error("An error occurred on host %a: %s", self._hostname, e)
+            self._connected = False
             return None
+
+    def _get_systemd_service_records(self) -> list[SystemdRecord]:
+        cmd = (
+            r'systemctl list-units --user --all --full --no-pager | grep "Tags \[.*\]"'
+        )
+        result_list: list[SystemdRecord] = []
+
+        systemd_unit_pattern = (
+            r"[^\w]+([\w-]+\.service)\s+(\w+)\s+(\w+)\s+(\w+)\s+(.+?)\s+Tags \[(.+?)\]"
+        )
+
+        try:
+            _, stdout, _ = self._ssh_client.exec_command(cmd)
+            lines = stdout.readlines()
+
+            for line in lines:
+                match = re.match(systemd_unit_pattern, line)
+                if match is not None:
+                    (
+                        unit,
+                        load_state,
+                        active_state,
+                        sub_state,
+                        description,
+                        tags,
+                    ) = match.groups()
+                    if unit.endswith(".service"):
+                        unit = unit[:-8]
+
+                result: SystemdRecord = {
+                    "hostname": self.hostname,
+                    "unit": unit,
+                    "load_state": load_state,
+                    "active_state": active_state,
+                    "sub_state": sub_state,
+                    "description": description,
+                    "tags": tags.split(", "),
+                }
+                result_list.append(result)
+
+        except Exception as e:
+            logger.error("An error occurred on host %a: %s", self._hostname, e)
+            self._connected = False
+
+        return result_list
