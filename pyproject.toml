@@ -1,0 +1,74 @@
+[tool.poetry]
+name = "orchestrator"
+version = "0.1.0"
+description = "Systemd service orchestrator written using the pydase framework."
+authors = ["Mose Mueller <mosmuell@ethz.ch>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pydase = { git = "https://github.com/tiqi-group/pydase.git", branch = "main" }
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.2.0"
+pyright = "^1.1.353"
+mypy = "^1.9.0"
+
+[tool.pyright]
+include = ["src/orchestrator", "tests"]
+typeCheckingMode = "basic"
+reportUnknownMemberType = true
+reportUnknownParameterType = true
+
+[tool.ruff]
+target-version = "py310" # Always generate Python 3.10-compatible code
+select = [
+    "ASYNC", # flake8-async
+    "C4",    # flake8-comprehensions
+    "C901",  # mccabe complex-structure
+    "E",     # pycodestyle errors
+    "ERA",   # eradicate
+    "F",     # pyflakes
+    "FLY",   # flynt
+    "G",     # flake8-logging-format
+    "I",     # isort
+    "ICN",   # flake8-import-conventions
+    "INP",   # flake8-no-pep420
+    "ISC",   # flake8-implicit-str-concat
+    "N",     # pep8-naming
+    "NPY",   # NumPy-specific rules
+    "PERF",  # perflint
+    "PIE",   # flake8-pie
+    "PL",    # pylint
+    "PYI",   # flake8-pyi
+    "Q",     # flake8-quotes
+    "RET",   # flake8-return
+    "RUF",   # Ruff-specific rules
+    "SIM",   # flake8-simplify
+    "TID",   # flake8-tidy-imports
+    "TCH",   # flake8-type-checking
+    "UP",    # pyupgrade
+    "YTT",   # flake8-2020
+    "W",     # pycodestyle warnings
+]
+ignore = [
+    "PERF203",  # try-except-in-loop
+]
+extend-exclude = [
+  "docs", "tests"
+]
+
+[tool.mypy]
+show_error_codes = 1
+disallow_untyped_defs = 1
+disallow_untyped_calls = 1
+disallow_incomplete_defs = 1
+check_untyped_defs = 1
