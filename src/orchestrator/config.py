@@ -4,6 +4,8 @@ from `ServiceConfig().config_dir / "config.yaml"` which can be configured using 
 `SERVICE_CONFIG_DIR` env variable.
 """
 
+from pathlib import Path
+
 import confz
 from pydantic import SecretStr
 from pydase.config import ServiceConfig
@@ -13,7 +15,7 @@ class ServiceHostConfig(confz.BaseConfig):  # type: ignore[misc]
     hostname: str
     username: str
     password: SecretStr | None = None
-    ssh_key: SecretStr | None = None
+    ssh_key_path: Path | None = None
 
 
 class SystemdServiceOrchestratorConfig(confz.BaseConfig):  # type: ignore[misc]
