@@ -24,10 +24,13 @@ class SystemdServiceOrchestrator(pydase.DataService):
         ]
         self._autostart_tasks["update_hosts"] = ()  # type: ignore
 
+    def update(self) -> None:
+        for host in self.service_hosts:
+            host.service_proxy_list = host.get_service_proxy_list()
+
     async def update_hosts(self) -> None:
         while True:
-            for host in self.service_hosts:
-                host.service_proxy_list = host.get_service_proxy_list()
+            self.update()
 
             if self.update_wait_time is None:
                 break
