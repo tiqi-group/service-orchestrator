@@ -1,14 +1,18 @@
 import enum
+import logging
 from collections.abc import Callable
 
 import pydase
 from pydase.utils.decorators import frontend
+
+logger = logging.getLogger(__name__)
 
 
 class ServiceState(enum.Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
     FAILED = "failed"
+    DEACTIVATING = "deactivating"
 
 
 class ManagerAction(enum.Enum):
@@ -17,31 +21,33 @@ class ManagerAction(enum.Enum):
     RESTART = "restart"
 
 
-class Tag(pydase.DataService):
-    def __init__(self, name: str) -> None:
-        super().__init__()
-        self._name = name
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-
 class SystemdServiceProxy(pydase.DataService):
     def __init__(  # noqa: PLR0913
         self,
+        hostname: str,
+        username: str,
         unit: str,
         state: ServiceState,
         description: str,
-        tags: list[Tag],
+        tags: list[str],
         systemd_unit_manager: Callable[[ManagerAction], str | None],
     ) -> None:
         super().__init__()
+        self._hostname = hostname
+        self._username = username
         self._unit = unit
         self._state = state
         self._description = description
         self._tags = tags
         self._systemd_unit_manager = systemd_unit_manager
+
+    @property
+    def username(self) -> str:
+        return self._username
+
+    @property
+    def hostname(self) -> str:
+        return self._hostname
 
     @property
     def unit(self) -> str:
@@ -56,7 +62,7 @@ class SystemdServiceProxy(pydase.DataService):
         return self._description
 
     @property
-    def tags(self) -> list[Tag]:
+    def tags(self) -> list[str]:
         return self._tags
 
     @frontend

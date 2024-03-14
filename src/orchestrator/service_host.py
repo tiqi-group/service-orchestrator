@@ -12,7 +12,6 @@ from orchestrator.systemd_service_proxy import (
     ManagerAction,
     ServiceState,
     SystemdServiceProxy,
-    Tag,
 )
 
 logger = logging.getLogger(__name__)
@@ -101,10 +100,12 @@ class ServiceHost(pydase.components.DeviceConnection):
                 self.service_proxy_list = self.get_service_proxy_list()
 
             service_proxy = SystemdServiceProxy(
+                hostname=self._hostname,
+                username=self._username,
                 unit=systemd_record["unit"],
                 state=ServiceState(systemd_record["active_state"]),
                 description=systemd_record["description"],
-                tags=[Tag(tag) for tag in systemd_record["tags"]],
+                tags=systemd_record["tags"],
                 systemd_unit_manager=change_unit_state,
             )
             service_proxy_list.append(service_proxy)
