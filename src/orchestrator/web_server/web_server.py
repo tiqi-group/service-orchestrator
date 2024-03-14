@@ -8,11 +8,11 @@ import uvicorn
 from fastapi import FastAPI
 from pydase.data_service.data_service_observer import DataServiceObserver
 
-from orchestrator.command_channel_manager import (
+from orchestrator.orchestrator import SystemdServiceOrchestrator
+from orchestrator.web_server.command_channel_manager import (
     CommandChannelEvent,
     CommandChannelManager,
 )
-from orchestrator.orchestrator import SystemdServiceOrchestrator
 
 logger = logging.getLogger(__name__)
 
