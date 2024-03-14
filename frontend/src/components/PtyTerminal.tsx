@@ -20,8 +20,6 @@ const PtyTerminal = (props: PtyTerminalProps) => {
   const fitAddon = useRef(new FitAddon()); // Reference to the fit addon
   const { cmd, cmdArgs, scrollback } = props;
 
-  const live = useRef(true);
-
   useEffect(() => {
     // This effect runs once on component mount
     term.current = new Terminal({
@@ -55,9 +53,7 @@ const PtyTerminal = (props: PtyTerminalProps) => {
       terminalDiv.current.addEventListener("wheel", handleWheel);
     }
     term.current.onData((data) => {
-      if (live.current) {
-        terminalSocket.emit("pty_input", { input: data });
-      }
+      terminalSocket.emit("pty_input", { input: data });
     });
 
     terminalSocket.off("pty-output");
@@ -76,7 +72,6 @@ const PtyTerminal = (props: PtyTerminalProps) => {
     terminalSocket.off("channel_closed");
     terminalSocket.on("channel_closed", (data) => {
       console.log("Channel closed", data);
-      live.current = false;
     });
 
     fitAddon.current.fit(); // Adjust terminal size
