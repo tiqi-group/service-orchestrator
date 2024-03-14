@@ -7,4 +7,7 @@ export default defineConfig({
   build: {
     outDir: "../src/orchestrator/frontend",
   },
+  esbuild: {
+    drop: ["console", "debugger"],
+  },
 });
