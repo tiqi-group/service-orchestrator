@@ -3,20 +3,15 @@ from pathlib import Path
 
 import pydase
 
+import orchestrator.web_server.setup_sio_events
 from orchestrator import SystemdServiceOrchestrator
-from orchestrator.web_server import WebServer
 
 logging.getLogger("paramiko.transport").setLevel(logging.INFO)
+
+orchestrator.web_server.setup_sio_events.main()
 
 service = SystemdServiceOrchestrator()
 pydase.Server(
     service,
     frontend_src=Path(__file__).parent / "frontend",
-    additional_servers=[
-        {
-            "server": WebServer,
-            "port": 9001,
-            "kwargs": {},
-        }
-    ],
 ).run()

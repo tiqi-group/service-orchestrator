@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { SearchAddon } from "xterm-addon-search";
-import { terminalSocket } from "../utils/socket";
+import { socket } from "../utils/socket";
 import "xterm/css/xterm.css";
 
 interface PtyTerminalProps {
@@ -53,32 +53,32 @@ const PtyTerminal = (props: PtyTerminalProps) => {
       terminalDiv.current.addEventListener("wheel", handleWheel);
     }
     term.current.onData((data) => {
-      terminalSocket.emit("pty_input", { input: data });
+      socket.emit("pty_input", { input: data });
     });
 
-    terminalSocket.off("pty-output");
-    terminalSocket.on("pty-output", (data) => {
+    socket.off("pty-output");
+    socket.on("pty-output", (data) => {
       // console.log('new output received from server:', data.output);
       if (term.current) {
         term.current.write(data.output);
       }
     });
 
-    terminalSocket.off("task_finished");
-    terminalSocket.on("task_finished", (data) => {
+    socket.off("task_finished");
+    socket.on("task_finished", (data) => {
       console.log("Task finished", data);
     });
 
-    terminalSocket.off("channel_closed");
-    terminalSocket.on("channel_closed", (data) => {
+    socket.off("channel_closed");
+    socket.on("channel_closed", (data) => {
       console.log("Channel closed", data);
     });
 
     fitAddon.current.fit(); // Adjust terminal size
     const dims = { cols: term.current.cols, rows: term.current.rows };
-    terminalSocket.emit("resize", dims);
+    socket.emit("resize", dims);
     console.log("sending new dimensions to server's pty", dims);
-    terminalSocket.emit("start_command", {
+    socket.emit("start_command", {
       hostname: props.hostname,
       username: props.username,
       cmd: cmd,
@@ -88,9 +88,9 @@ const PtyTerminal = (props: PtyTerminalProps) => {
     // Clean up and close connection when component unmounts
     return () => {
       console.log("Signing off");
-      terminalSocket.off("task_finished");
-      terminalSocket.off("channel_closed");
-      terminalSocket.off("pty-output");
+      socket.off("task_finished");
+      socket.off("channel_closed");
+      socket.off("pty-output");
       if (term.current) {
         term.current.dispose();
       }

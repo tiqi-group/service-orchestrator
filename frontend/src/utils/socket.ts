@@ -7,16 +7,8 @@ export const servicePort =
 const SERVICE_URL = `ws://${serviceHostname}:${servicePort}/`;
 console.debug("Websocket: ", SERVICE_URL);
 
-export const serviceSocket = io(SERVICE_URL, {
+export const socket = io(SERVICE_URL, {
   path: "/ws/socket.io",
-  transports: ["websocket"],
-});
-
-export const terminalSocketioHostname =
-  process.env.NODE_ENV === "development" ? `localhost` : window.location.hostname;
-export const terminalPort = 9001;
-const TERMINAL_SOCKETIO_URL = `ws://${terminalSocketioHostname}:${terminalPort}/`;
-export const terminalSocket = io(TERMINAL_SOCKETIO_URL, {
   transports: ["websocket"],
 });
 
@@ -27,13 +19,9 @@ export const setAttribute = (
   callback?: (ack: unknown) => void,
 ) => {
   if (callback) {
-    serviceSocket.emit(
-      "set_attribute",
-      { name, parent_path: parentPath, value },
-      callback,
-    );
+    socket.emit("set_attribute", { name, parent_path: parentPath, value }, callback);
   } else {
-    serviceSocket.emit("set_attribute", {
+    socket.emit("set_attribute", {
       name,
       parent_path: parentPath,
       value,
@@ -48,13 +36,9 @@ export const runMethod = (
   callback?: (ack: unknown) => void,
 ) => {
   if (callback) {
-    serviceSocket.emit(
-      "run_method",
-      { name, parent_path: parentPath, kwargs },
-      callback,
-    );
+    socket.emit("run_method", { name, parent_path: parentPath, kwargs }, callback);
   } else {
-    serviceSocket.emit("run_method", {
+    socket.emit("run_method", {
       name,
       parent_path: parentPath,
       kwargs,

@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useState } from "react";
 import "./App.css";
-import { serviceSocket, serviceHostname, servicePort } from "./utils/socket";
+import { socket, serviceHostname, servicePort } from "./utils/socket";
 import ServicesTable, { SystemdUnitState } from "./components/ServicesTableComponent";
 import { ConnectionSnackbar } from "./components/ConnectionSnackbar";
 import { RefreshControl } from "./components/RefreshControl";
@@ -96,7 +96,7 @@ const App = () => {
     });
   }
   useEffect(() => {
-    serviceSocket.on("connect", () => {
+    socket.on("connect", () => {
       setConnectionStatus("connected");
       // Fetch data from the API when the client connects
       fetch(`http://${serviceHostname}:${servicePort}/service-properties`)
@@ -104,7 +104,7 @@ const App = () => {
         .then((data: State) => dispatch({ type: "SET_DATA", data }));
       setConnectionStatus("connected");
     });
-    serviceSocket.on("disconnect", () => {
+    socket.on("disconnect", () => {
       setConnectionStatus("disconnected");
       setTimeout(() => {
         // Only set "reconnecting" is the state is still "disconnected"
@@ -115,10 +115,10 @@ const App = () => {
       }, 2000);
     });
 
-    serviceSocket.on("notify", onNotify);
+    socket.on("notify", onNotify);
 
     return () => {
-      serviceSocket.off("notify", onNotify);
+      socket.off("notify", onNotify);
     };
   }, []);
 
