@@ -39,14 +39,14 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
             if action == CommandChannelEvent.PTY_OUTPUT:
                 await sio.emit("pty-output", payload, to=sid)  # type: ignore
             elif action == CommandChannelEvent.COMMAND_FINISHED:
-                logger.info("Command finished %s", payload)
+                logger.debug("Command finished %s", payload)
                 await sio.emit(  # type: ignore
                     "task_finished",
                     payload,
                     to=sid,
                 )
             elif action == CommandChannelEvent.CLOSED:
-                logger.info("Channel closed %s", payload)
+                logger.debug("Channel closed %s", payload)
                 await sio.emit(  # type: ignore
                     "channel_closed",
                     payload,
