@@ -51,44 +51,6 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
   const [key, setKey] = useState("journalctl");
   const [higherLevelKey, setHigherLevelKey] = useState("description");
   const [terminalKey, setTerminalKey] = useState(Date.now()); // used to rerender the Terminal by changing the key
-  console.log(selectedService);
-
-  useEffect(() => {
-    setServiceProxyList(
-      state.value.service_hosts.value.flatMap((host, hostIndex) => {
-        // Access each host's service proxy list and transform each serviceProxy
-        const hostServiceList = host.value.service_proxy_list.value.map(
-          (serviceProxy, serviceIndex) => {
-            // Create a new object to avoid direct modification (mutation) of the original state
-            const modifiedServiceProxy = {
-              ...serviceProxy,
-              fullAccessPath: `service_hosts[${hostIndex}].service_proxy_list[${serviceIndex}]`,
-            };
-            return modifiedServiceProxy;
-          },
-        );
-        return hostServiceList;
-      }),
-    );
-    setAllTags(() =>
-      Array.from(
-        new Set(
-          serviceProxyList.flatMap((serviceProxy) =>
-            serviceProxy.value.tags.value.flatMap((tag) => tag.value),
-          ),
-        ),
-      ),
-    );
-    setAllHostnames(() =>
-      Array.from(
-        new Set(
-          state.value.service_hosts.value.flatMap(
-            (serviceHost) => serviceHost.value.hostname.value,
-          ),
-        ),
-      ),
-    );
-  }, [state]);
 
   // Contains all the ServiceProxy elements that are on the selected hostname and has
   // at least on of the selcted tags.
@@ -111,6 +73,39 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
 
     runMethod(action, fullAccessPath, {});
   };
+
+  useEffect(() => {
+    // Update serviceProxyList based on the `state`
+    const newList = state.value.service_hosts.value.flatMap((host, hostIndex) =>
+      host.value.service_proxy_list.value.map((serviceProxy, serviceIndex) => ({
+        ...serviceProxy,
+        fullAccessPath: `service_hosts[${hostIndex}].service_proxy_list[${serviceIndex}]`,
+      })),
+    );
+    setServiceProxyList(newList);
+
+    // Update allHostnames based on the `state`
+    setAllHostnames(
+      Array.from(
+        new Set(
+          state.value.service_hosts.value.map((host) => host.value.hostname.value),
+        ),
+      ),
+    );
+  }, [state]);
+
+  useEffect(() => {
+    // Update allTags whenever displayedServices changes
+    const tags = Array.from(
+      new Set(
+        displayedServices.flatMap((serviceProxy) =>
+          serviceProxy.value.tags.value.map((tag) => tag.value),
+        ),
+      ),
+    );
+    setAllTags(tags);
+  }, [displayedServices]);
+
   return (
     <>
       <div style={{ float: "right" }}>
