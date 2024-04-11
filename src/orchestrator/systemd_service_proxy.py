@@ -68,12 +68,15 @@ class SystemdServiceProxy(pydase.DataService):
 
     @frontend
     def start(self) -> str | None:
+        logger.info("Starting %s on %s", self._unit, self._hostname)
         return self._systemd_unit_manager(ManagerAction.START)
 
     @frontend
     def stop(self) -> str | None:
+        logger.info("Stopping %s on %s", self._unit, self._hostname)
         return self._systemd_unit_manager(ManagerAction.STOP)
 
     @frontend
     def restart(self) -> str | None:
+        logger.info("Restarting %s on %s", self._unit, self._hostname)
         return self._systemd_unit_manager(ManagerAction.RESTART)
