@@ -12,6 +12,7 @@ class ServiceState(enum.Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
     FAILED = "failed"
+    ACTIVATING = "activating"
     DEACTIVATING = "deactivating"
 
 
