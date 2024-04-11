@@ -59,7 +59,7 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
 
     @sio.event  # type: ignore
     async def start_command(sid: str, data: StartCommand) -> None:
-        logger.debug(
+        logger.info(
             "Client [%s] - start_command: %s",
             click.style(str(sid), fg="cyan"),
             data,
