@@ -31,6 +31,8 @@ pydase_setup_sio_events = pydase.server.web_server.sio_setup.setup_sio_events
 
 
 def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> None:  # noqa: C901
+    pydase_setup_sio_events(sio, state_manager)
+
     @sio.event  # type: ignore
     async def connect(sid: str, environ: Any) -> None:
         logging.debug("Client [%s] connected", click.style(str(sid), fg="cyan"))
@@ -106,21 +108,23 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
             "Client [%s]- pty_input: %s", click.style(str(sid), fg="cyan"), data
         )
         async with sio.session(sid) as session:  # type: ignore
-            command_channel_manager = cast(
-                CommandChannelManager, session["command_channel_manager"]
-            )
-            await command_channel_manager.send_input_to_channel(data)
+            if "command_channel_manager" in session:
+                command_channel_manager = cast(
+                    CommandChannelManager, session["command_channel_manager"]
+                )
+                await command_channel_manager.send_input_to_channel(data)
 
     @sio.event  # type: ignore
     async def resize(sid: str, data: ResizeChannelDict):
         logger.debug("Client [%s] - resize: %s", click.style(str(sid), fg="cyan"), data)
         async with sio.session(sid) as session:  # type: ignore
-            command_channel_manager = cast(
-                CommandChannelManager, session["command_channel_manager"]
-            )
-            await command_channel_manager.resize_channel_pty(data["rows"], data["cols"])
-
-    pydase_setup_sio_events(sio, state_manager)
+            if "command_channel_manager" in session:
+                command_channel_manager = cast(
+                    CommandChannelManager, session["command_channel_manager"]
+                )
+                await command_channel_manager.resize_channel_pty(
+                    data["rows"], data["cols"]
+                )
 
 
 def main() -> None:
