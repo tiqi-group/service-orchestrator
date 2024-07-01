@@ -44,6 +44,7 @@ type ServicesTableProps = {
 const ServicesTable = React.memo((props: ServicesTableProps) => {
   const { state, selectedService, onSelectService } = props;
   const [serviceProxyList, setServiceProxyList] = useState<ServiceProxy[]>([]);
+  const [displayedServices, setDisplayedServices] = useState<ServiceProxy[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [allHostnames, setAllHostnames] = useState<string[]>([]);
   const [selectedHostnames, setSelectedHostnames] = useState<string[]>([]);
@@ -51,18 +52,6 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
   const [key, setKey] = useState("journalctl");
   const [higherLevelKey, setHigherLevelKey] = useState("description");
   const [terminalKey, setTerminalKey] = useState(Date.now()); // used to rerender the Terminal by changing the key
-
-  // Contains all the ServiceProxy elements that are on the selected hostname and has
-  // at least on of the selcted tags.
-  const displayedServices = serviceProxyList.filter(
-    (serviceProxy) =>
-      (selectedTags.length === 0 ||
-        serviceProxy.value.tags.value.some((tag) =>
-          selectedTags.includes(tag.value),
-        )) &&
-      (selectedHostnames.length === 0 ||
-        selectedHostnames.includes(serviceProxy.value.hostname.value)),
-  );
 
   const executeAction = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
@@ -92,19 +81,34 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
         ),
       ),
     );
-  }, [state]);
 
-  useEffect(() => {
-    // Update allTags whenever displayedServices changes
-    const tags = Array.from(
-      new Set(
-        displayedServices.flatMap((serviceProxy) =>
-          serviceProxy.value.tags.value.map((tag) => tag.value),
+    // Update allTags based on the `state`
+    setAllTags(
+      Array.from(
+        new Set(
+          newList.flatMap((serviceProxy) =>
+            serviceProxy.value.tags.value.map((tag) => tag.value),
+          ),
         ),
       ),
     );
-    setAllTags(tags);
-  }, [displayedServices]);
+  }, [state]);
+
+  useEffect(() => {
+    // Contains all the ServiceProxy elements that are on the selected hostname and has
+    // at least on of the selcted tags.
+    setDisplayedServices(
+      serviceProxyList.filter(
+        (serviceProxy) =>
+          (selectedTags.length === 0 ||
+            serviceProxy.value.tags.value.some((tag) =>
+              selectedTags.includes(tag.value),
+            )) &&
+          (selectedHostnames.length === 0 ||
+            selectedHostnames.includes(serviceProxy.value.hostname.value)),
+      ),
+    );
+  }, [serviceProxyList, selectedTags, selectedHostnames]);
 
   return (
     <>
