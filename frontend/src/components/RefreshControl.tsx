@@ -16,12 +16,11 @@ import { runMethod, updateValue } from "../utils/socket";
 
 const options: Record<string, number | null> = {
   Off: null,
-  "1s": 1,
-  "2s": 2,
-  "5s": 5,
   "10s": 10,
   "30s": 30,
   "1m": 60,
+  "5m": 300,
+  "10m": 600,
 };
 
 const getKeyByValue = (value: number | null) => {
@@ -94,7 +93,7 @@ export const RefreshControl = React.memo((props: RefreshControlProps) => {
             onClick={handleToggle}
             endIcon={<ArrowDropDownIcon />}
             style={{ textTransform: "initial" }}>
-            {refreshInterval !== null && `${refreshInterval}s`}
+            {refreshInterval !== null && selectedKey}
           </Button>
         </Tooltip>
       </ButtonGroup>
