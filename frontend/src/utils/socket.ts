@@ -1,47 +1,53 @@
 import { io } from "socket.io-client";
-
-export const serviceHostname =
+import { serializeDict, serializeList } from "./serializationUtils";
+import { SerializedValue } from "./stateUtils";
+export const hostname =
   process.env.NODE_ENV === "development" ? `localhost` : window.location.hostname;
-export const servicePort =
+export const port =
   process.env.NODE_ENV === "development" ? 8001 : window.location.port;
-const SERVICE_URL = `ws://${serviceHostname}:${servicePort}/`;
-console.debug("Websocket: ", SERVICE_URL);
+const URL = `ws://${hostname}:${port}/`;
+console.debug("Websocket: ", URL);
 
-export const socket = io(SERVICE_URL, {
-  path: "/ws/socket.io",
-  transports: ["websocket"],
-});
+export const socket = io(URL, { path: "/ws/socket.io", transports: ["websocket"] });
 
-export const setAttribute = (
-  name: string,
-  parentPath: string,
-  value: unknown,
+export const updateValue = (
+  serializedObject: SerializedValue,
   callback?: (ack: unknown) => void,
 ) => {
   if (callback) {
-    socket.emit("set_attribute", { name, parent_path: parentPath, value }, callback);
+    socket.emit(
+      "update_value",
+      { access_path: serializedObject["full_access_path"], value: serializedObject },
+      callback,
+    );
   } else {
-    socket.emit("set_attribute", {
-      name,
-      parent_path: parentPath,
-      value,
+    socket.emit("update_value", {
+      access_path: serializedObject["full_access_path"],
+      value: serializedObject,
     });
   }
 };
 
 export const runMethod = (
-  name: string,
-  parentPath: string,
-  kwargs: Record<string, unknown>,
+  accessPath: string,
+  args: unknown[] = [],
+  kwargs: Record<string, unknown> = {},
   callback?: (ack: unknown) => void,
 ) => {
+  const serializedArgs = serializeList(args);
+  const serializedKwargs = serializeDict(kwargs);
+
   if (callback) {
-    socket.emit("run_method", { name, parent_path: parentPath, kwargs }, callback);
+    socket.emit(
+      "trigger_method",
+      { access_path: accessPath, args: serializedArgs, kwargs: serializedKwargs },
+      callback,
+    );
   } else {
-    socket.emit("run_method", {
-      name,
-      parent_path: parentPath,
-      kwargs,
+    socket.emit("trigger_method", {
+      access_path: accessPath,
+      args: serializedArgs,
+      kwargs: serializedKwargs,
     });
   }
 };

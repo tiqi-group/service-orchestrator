@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useState } from "react";
 import "./App.css";
-import { socket, serviceHostname, servicePort } from "./utils/socket";
+import { socket, hostname, port } from "./utils/socket";
 import ServicesTable, { SystemdUnitState } from "./components/ServicesTableComponent";
 import { ConnectionSnackbar } from "./components/ConnectionSnackbar";
 import { RefreshControl } from "./components/RefreshControl";
@@ -68,6 +68,7 @@ const reducer = (state: State | null, action: Action): State | null => {
         ...state,
         /* @ts-expect-error setNestedValueByPath is very generic - but we know the exact structure */
         value: setNestedValueByPath(
+          /* @ts-expect-error I left out some parts of the state type */
           state.value,
           action.fullAccessPath,
           action.newValue,
@@ -99,7 +100,7 @@ const App = () => {
     socket.on("connect", () => {
       setConnectionStatus("connected");
       // Fetch data from the API when the client connects
-      fetch(`http://${serviceHostname}:${servicePort}/service-properties`)
+      fetch(`http://${hostname}:${port}/service-properties`)
         .then((response) => response.json())
         .then((data: State) => dispatch({ type: "SET_DATA", data }));
       setConnectionStatus("connected");
