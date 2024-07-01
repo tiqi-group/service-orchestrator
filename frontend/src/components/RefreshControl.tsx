@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { runMethod, setAttribute } from "../utils/socket";
+import { runMethod, updateValue } from "../utils/socket";
 
 const options: Record<string, number | null> = {
   Off: null,
@@ -40,7 +40,7 @@ export const RefreshControl = React.memo((props: RefreshControlProps) => {
   const anchorRef = useRef<HTMLDivElement>(null);
 
   const refreshDashboard = () => {
-    runMethod("update", "", {});
+    runMethod("update");
   };
 
   const handleToggle = () => {
@@ -57,9 +57,16 @@ export const RefreshControl = React.memo((props: RefreshControlProps) => {
   const handleMenuItemClick = (key: OptionKeys) => {
     setSelectedKey(key);
     setMenuOpen(false);
-    setAttribute("update_wait_time", "", options[key]);
-    runMethod("stop_update_hosts", "", {});
-    runMethod("start_update_hosts", "", {});
+
+    updateValue({
+      type: "int",
+      full_access_path: "update_wait_time",
+      readonly: false,
+      value: options[key],
+    });
+    runMethod("stop_update_hosts");
+    // Need to wait until the task has been stopped..
+    setTimeout(() => runMethod("start_update_hosts"), 100);
   };
 
   useEffect(() => {
