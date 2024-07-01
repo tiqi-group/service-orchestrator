@@ -71,7 +71,7 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
   ) => {
     event.stopPropagation(); // This will stop the event from reaching the parent TableRow
 
-    runMethod(action, fullAccessPath, {});
+    runMethod(`${fullAccessPath}.${action}`);
   };
 
   useEffect(() => {
