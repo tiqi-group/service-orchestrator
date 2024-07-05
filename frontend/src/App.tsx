@@ -5,6 +5,7 @@ import ServicesTable, { SystemdUnitState } from "./components/ServicesTableCompo
 import { ConnectionSnackbar } from "./components/ConnectionSnackbar";
 import { RefreshControl } from "./components/RefreshControl";
 import { SerializedValue, setNestedValueByPath } from "./utils/stateUtils";
+import { useURLService } from "./hooks/useURLService";
 
 export type ServiceProxy = {
   fullAccessPath: string;
@@ -82,8 +83,8 @@ const reducer = (state: State | null, action: Action): State | null => {
 
 const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
-  const [selectedService, setSelectedService] = useState<ServiceProxy | null>(null);
   const [connectionStatus, setConnectionStatus] = useState("connecting");
+  const { selectedService, setSelectedService } = useURLService();
 
   function onNotify(value: UpdateMessage) {
     // Extracting data from the notification
@@ -137,9 +138,7 @@ const App = () => {
         <ServicesTable
           state={state}
           selectedService={selectedService}
-          onSelectService={(service: ServiceProxy | null) =>
-            setSelectedService(service)
-          }
+          onSelectService={(service: string | null) => setSelectedService(service)}
         />
       )}
       <ConnectionSnackbar connectionStatus={connectionStatus} />

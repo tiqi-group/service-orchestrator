@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Table,
   TableBody,
@@ -37,8 +37,8 @@ export type SystemdUnitState = {
 
 type ServicesTableProps = {
   state: State;
-  selectedService: ServiceProxy | null;
-  onSelectService: (service: ServiceProxy | null) => void;
+  selectedService: string | null;
+  onSelectService: (service: string | null) => void;
 };
 
 const ServicesTable = React.memo((props: ServicesTableProps) => {
@@ -170,17 +170,15 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
                   style={{
                     cursor: "pointer",
                     backgroundColor:
-                      selectedService?.fullAccessPath === serviceProxy.fullAccessPath
+                      selectedService === serviceProxy.fullAccessPath
                         ? "#e0e0e0"
                         : "transparent",
                   }}
                   onClick={() => {
-                    if (
-                      selectedService?.fullAccessPath === serviceProxy.fullAccessPath
-                    ) {
+                    if (selectedService === serviceProxy.fullAccessPath) {
                       onSelectService(null); // set to null to collapse
                     } else {
-                      onSelectService(serviceProxy); // set to the current service to expand
+                      onSelectService(serviceProxy.fullAccessPath); // set to the current service to expand
                     }
                   }}>
                   <TableCell>
@@ -239,7 +237,7 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
                     </Tooltip>
                   </TableCell>
                 </TableRow>
-                {selectedService?.fullAccessPath === serviceProxy.fullAccessPath && (
+                {selectedService === serviceProxy.fullAccessPath && (
                   <TableRow>
                     <TableCell colSpan={7}>
                       <TabContext value={higherLevelKey}>
