@@ -106,8 +106,10 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
 
   // Scroll to the selected service row when loading the page
   useEffect(() => {
-    if (selectedService && !hasScrolledInitially) {
-      if (selectedServiceRef.current) {
+    if (!hasScrolledInitially) {
+      if (!selectedService) {
+        setHasScrolledInitially(true);
+      } else if (selectedServiceRef.current) {
         selectedServiceRef.current.scrollIntoView({
           behavior: "smooth",
         });
