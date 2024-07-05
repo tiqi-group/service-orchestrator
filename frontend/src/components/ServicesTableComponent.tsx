@@ -52,16 +52,16 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
   const [key, setKey] = useState("journalctl");
   const [higherLevelKey, setHigherLevelKey] = useState("description");
   const [terminalKey, setTerminalKey] = useState(Date.now()); // used to rerender the Terminal by changing the key
+  const selectedServiceRef = useRef<HTMLTableRowElement | null>(null);
 
-  const executeAction = (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    action: string,
-    fullAccessPath: string,
-  ) => {
-    event.stopPropagation(); // This will stop the event from reaching the parent TableRow
-
-    runMethod(`${fullAccessPath}.${action}`);
-  };
+  useEffect(() => {
+    // Scroll to the selected service row
+    if (selectedServiceRef.current) {
+      selectedServiceRef.current.scrollIntoView({
+        behavior: "smooth",
+      });
+    }
+  }, [selectedService, displayedServices]);
 
   useEffect(() => {
     // Update serviceProxyList based on the `state`
@@ -110,6 +110,15 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
     );
   }, [serviceProxyList, selectedTags, selectedHostnames]);
 
+  const executeAction = (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    action: string,
+    fullAccessPath: string,
+  ) => {
+    event.stopPropagation(); // This will stop the event from reaching the parent TableRow
+
+    runMethod(`${fullAccessPath}.${action}`);
+  };
   return (
     <>
       <div style={{ float: "right" }}>
@@ -174,6 +183,11 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
                         ? "#e0e0e0"
                         : "transparent",
                   }}
+                  ref={
+                    selectedService === serviceProxy.fullAccessPath
+                      ? selectedServiceRef
+                      : null
+                  }
                   onClick={() => {
                     if (selectedService === serviceProxy.fullAccessPath) {
                       onSelectService(null); // set to null to collapse
