@@ -24,6 +24,7 @@ import StopIcon from "@mui/icons-material/Stop";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import { runMethod } from "../utils/socket";
 import { ServiceProxy, State } from "../App";
+import { useURLTags } from "../hooks/useURLTags";
 
 export type SystemdUnitState = {
   value: "ACTIVE" | "INACTIVE" | "FAILED" | "DEACTIVATING";
@@ -48,20 +49,13 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
   const [allTags, setAllTags] = useState<string[]>([]);
   const [allHostnames, setAllHostnames] = useState<string[]>([]);
   const [selectedHostnames, setSelectedHostnames] = useState<string[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const { selectedURLTags, setSelectedURLTags } = useURLTags();
+  const [selectedTags, setSelectedTags] = useState<string[]>(selectedURLTags);
   const [key, setKey] = useState("journalctl");
   const [higherLevelKey, setHigherLevelKey] = useState("description");
   const [terminalKey, setTerminalKey] = useState(Date.now()); // used to rerender the Terminal by changing the key
   const selectedServiceRef = useRef<HTMLTableRowElement | null>(null);
-
-  useEffect(() => {
-    // Scroll to the selected service row
-    if (selectedServiceRef.current) {
-      selectedServiceRef.current.scrollIntoView({
-        behavior: "smooth",
-      });
-    }
-  }, [selectedService, displayedServices]);
+  const [hasScrolledInitially, setHasScrolledInitially] = useState(false);
 
   useEffect(() => {
     // Update serviceProxyList based on the `state`
@@ -110,6 +104,23 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
     );
   }, [serviceProxyList, selectedTags, selectedHostnames]);
 
+  // Scroll to the selected service row when loading the page
+  useEffect(() => {
+    if (selectedService && !hasScrolledInitially) {
+      if (selectedServiceRef.current) {
+        selectedServiceRef.current.scrollIntoView({
+          behavior: "smooth",
+        });
+        setHasScrolledInitially(true);
+      }
+    }
+  }, [displayedServices]);
+
+  const handleSelectTags = (tags: string[]) => {
+    setSelectedURLTags(tags);
+    setSelectedTags(tags);
+  };
+
   const executeAction = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     action: string,
@@ -148,7 +159,8 @@ const ServicesTable = React.memo((props: ServicesTableProps) => {
             multiple
             id="tags-autocomplete"
             options={allTags}
-            onChange={(_, value) => setSelectedTags(value)}
+            value={selectedTags}
+            onChange={(_, value) => handleSelectTags(value)}
             renderInput={(params) => (
               <TextField
                 {...params}
